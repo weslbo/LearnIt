@@ -18,6 +18,9 @@ import markdownify
 import re
 import azure.cognitiveservices.speech as speechsdk
 import datetime
+import json
+import uuid
+import time
 
 kernel = Kernel()
 
@@ -156,6 +159,91 @@ class MyMagics(Magics):
         return asyncio.run(self.audioasync(cell))
     
     @cell_magic
+    def video(self, line, cell):
+        """
+        Custom magic command for interacting with Azure OpenAI GPT model.
+        Keeps track of conversation history.
+        """
+
+        # Wrap the coroutine call using asyncio.run or an event loop
+        import nest_asyncio
+        import asyncio
+        nest_asyncio.apply()
+        return asyncio.run(self.videoasync(cell))
+    
+  
+    async def videoasync(self, cell):
+        """
+        Custom magic command for interacting with Azure OpenAI GPT model.
+        Keeps track of conversation history.
+        """
+
+        # Process the user message and get an answer
+        answer = await kernel.invoke(chat_function, KernelArguments(user_input=cell, history=chat_history))
+
+        # Show the response
+        display(Markdown(str(answer)))
+
+        chat_history.add_user_message(cell)
+        chat_history.add_assistant_message(str(answer))
+
+        # Wrap the coroutine call using asyncio.run or an event loop
+        job_id = str(uuid.uuid4())
+
+        url = f'https://{os.getenv("SPEECH_REGION")}.api.cognitive.microsoft.com/avatar/batchsyntheses/{job_id}?api-version=2024-04-15-preview'
+        print(url)
+        header = {
+            'Content-Type': 'application/json',
+            'Ocp-Apim-Subscription-Key': os.getenv("SPEECH_API_KEY")
+        }
+
+        payload = {
+            'synthesisConfig': {
+                "voice": f'en-US-EmmaNeural',
+            },
+            'customVoices': {
+                # "YOUR_CUSTOM_VOICE_NAME": "YOUR_CUSTOM_VOICE_ID"
+            },
+            "inputKind": "plainText",
+            "inputs": [
+                {
+                    "content": answer,
+                },
+            ],
+            "avatarConfig":
+                {
+                    "customized": False, # set to True if you want to use customized avatar
+                    "talkingAvatarCharacter": 'Lori',  # talking avatar character
+                    "talkingAvatarStyle": 'graceful',  # talking avatar style, required for prebuilt avatar, optional for custom avatar
+                    "videoFormat": "webm",  # mp4 or webm, webm is required for transparent background // was mp4
+                    "videoCodec": "vp9",  # hevc, h264 or vp9, vp9 is required for transparent background; default is hevc // was h264
+                    "subtitleType": "soft_embedded",
+                    "backgroundColor": "transparent", # background color in RGBA format, default is white; can be set to 'transparent' for transparent background
+                    "videoCrop": {  "topLeft": { "x": 460, "y": 0}, "bottomRight": { "x": 1460, "y": 1079}  }
+                }  
+        }
+        
+        response = requests.put(url, json.dumps(payload, default=str), headers=header)
+        if response.status_code < 400:
+            print('Batch avatar synthesis job submitted successfully')
+            print(f'Job ID: {response.json()["id"]}')
+        else:
+            print(f'Failed to submit batch avatar synthesis job: [{response.status_code}], {response.text}')
+
+        while True:
+            status = MyMagics.get_synthesis(url)
+            if status == 'Succeeded':
+                print('batch avatar synthesis job succeeded')
+                break
+            elif status == 'Failed':
+                print('batch avatar synthesis job failed')
+                break
+            else:
+                print(f'batch avatar synthesis job is [{status}]')
+                time.sleep(5)        
+                    
+    
+    @cell_magic
     def mindmap(self, line, cell):
         """
         Custom magic command for interacting with Azure OpenAI GPT model.
@@ -214,6 +302,23 @@ class MyMagics(Magics):
             chat_history.add_system_message("You are a helpful AI Assistant. Answer to the point and limit your output so your answers are simple to understand. Here's the content of the module: " + allcontent)
 
         return line, cell
+
+      
+    @classmethod
+    def get_synthesis(cls, url):
+        header = {
+            'Ocp-Apim-Subscription-Key': os.getenv("SPEECH_API_KEY")
+        }
+
+        response = requests.get(url, headers=header)
+        if response.status_code < 400:
+            print('Get batch synthesis job successfully')
+            print(response.json())
+            if response.json()['status'] == 'Succeeded':
+                print(f'Batch synthesis job succeeded, download URL: {response.json()["outputs"]["result"]}')
+            return response.json()['status']
+        else:
+            print(f'Failed to get batch synthesis job: {response.text}')        
 
 def load_ipython_extension(ipython):
     """
