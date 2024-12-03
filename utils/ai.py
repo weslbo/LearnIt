@@ -117,6 +117,19 @@ class MyMagics(Magics):
         chat_history.add_user_message(cell)
         chat_history.add_assistant_message(str(answer))
 
+    async def mindmapasync(self, cell):
+        #global history
+
+        msg = cell + " . Create a mindmap using plantuml. Use the following format: ```plantuml @startmindmap <the mindmap> @endmindmap ```. Only return the mindmap "
+
+        # Process the user message and get an answer
+        answer = await kernel.invoke(chat_function, KernelArguments(user_input=msg, history=chat_history))
+
+        # Show the response
+        display(Markdown(str(answer)))
+
+        chat_history.add_user_message(cell)
+        chat_history.add_assistant_message(str(answer))
         
     @cell_magic
     def question(self, line, cell):
@@ -141,6 +154,18 @@ class MyMagics(Magics):
         import asyncio
         nest_asyncio.apply()
         return asyncio.run(self.audioasync(cell))
+    
+    @cell_magic
+    def mindmap(self, line, cell):
+        """
+        Custom magic command for interacting with Azure OpenAI GPT model.
+        Keeps track of conversation history.
+        """
+        # Wrap the coroutine call using asyncio.run or an event loop
+        import nest_asyncio
+        import asyncio
+        nest_asyncio.apply()
+        return asyncio.run(self.mindmapasync(cell))
     
     @cell_magic
     def learn(self, line, cell):
