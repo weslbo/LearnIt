@@ -1,0 +1,5 @@
+semantic_kernel
+BeautifulSoup
+markdownify
+urljoin
+azure-cognitiveservices-speech
