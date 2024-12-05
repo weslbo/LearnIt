@@ -104,8 +104,6 @@ class MyMagics(Magics):
         service_region = os.getenv("SPEECH_REGION")
         speech_key = os.getenv("SPEECH_API_KEY")
         speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_region)
-        # speech_config.speech_synthesis_language = "en-US" 
-        # speech_config.speech_synthesis_voice_name ="en-US-AvaMultilingualNeural"
         speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Audio24Khz96KBitRateMonoMp3)  
 
         mp3_filename = f"./audio/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M')}.mp3"
