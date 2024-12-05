@@ -1,5 +1,6 @@
+openai
 semantic_kernel
-BeautifulSoup
+BeautifulSoup4
 markdownify
 urljoin
 azure-cognitiveservices-speech
