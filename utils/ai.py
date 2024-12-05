@@ -63,7 +63,7 @@ chat_function = kernel.add_function(
 )
 
 chat_history = ChatHistory()
-chat_history.add_system_message("You are a helpful AI Assistant. Answer to the point and limit your output so your answers are simple to understand.")
+chat_history.add_system_message("You are a helpful AI Assistant. Answer to the point and limit your output so your answers are simple to understand. Highlight the most important keywords in **bold**.")
 
 
 # The class MUST call this class decorator at creation time
@@ -299,7 +299,7 @@ class MyMagics(Magics):
 
             allcontent += title_module + "\n\n" + markdown + "\n\n"
     
-            chat_history.add_system_message("You are a helpful AI Assistant. Answer to the point and limit your output so your answers are simple to understand. Here's the content of the module: " + allcontent)
+            chat_history.add_system_message("You are a helpful AI Assistant. Answer to the point and limit your output so your answers are simple to understand. Highlight the most important keywords in **bold**. Here's the content of the module: " + allcontent)
 
         return line, cell
 
