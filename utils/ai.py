@@ -113,7 +113,8 @@ class MyMagics(Magics):
     
         # Show the response
         display(Markdown(str(answer)))
-        display(Audio(mp3_filename, autoplay=True))
+        # display(Audio(mp3_filename, autoplay=True))
+        display(Video(mp3_filename, autoplay=True))
 
         chat_history.add_user_message(cell)
         chat_history.add_assistant_message(str(answer))
