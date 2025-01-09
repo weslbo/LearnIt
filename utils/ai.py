@@ -106,7 +106,7 @@ class MyMagics(Magics):
         speech_config = speechsdk.SpeechConfig(subscription=speech_key, region=service_region)
         speech_config.set_speech_synthesis_output_format(speechsdk.SpeechSynthesisOutputFormat.Audio24Khz96KBitRateMonoMp3)  
 
-        mp3_filename = f"./audio/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M')}.mp3"
+        mp3_filename = f"./audio/{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M')}.mp4"
         file_config = speechsdk.audio.AudioOutputConfig(filename=mp3_filename)
         speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=speech_config, audio_config=file_config)  
         result = speech_synthesizer.speak_ssml_async(strssml).get()
